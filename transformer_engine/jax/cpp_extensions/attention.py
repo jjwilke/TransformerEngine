@@ -513,8 +513,8 @@ class FusedAttnFwdPrimitive(BasePrimitive):
     ):
         del attn_bias_type, attn_mask_type, scaling_factor
         del dropout_probability, is_training, max_segments_per_seq, result_infos
-        q_spec = get_padded_spec(arg_infos[0])
-        k_spec = get_padded_spec(arg_infos[1])
+        q_spec = get_padded_spec(arg_infos[0], mesh)
+        k_spec = get_padded_spec(arg_infos[1], mesh)
         match qkv_layout:
             case NVTE_QKV_Layout.NVTE_BS3HD | NVTE_QKV_Layout.NVTE_T3HD:
                 # q_spec = (...batch, q_seqlen, head, hidden)
@@ -912,10 +912,10 @@ class FusedAttnBwdPrimitive(BasePrimitive):
     ):
         del attn_bias_type, attn_mask_type, qkv_layout, scaling_factor, max_segments_per_seq
         del dropout_probability, is_training, result_infos
-        q_spec = get_padded_spec(arg_infos[0])
-        k_spec = get_padded_spec(arg_infos[1])
-        v_spec = get_padded_spec(arg_infos[2])
-        bias_spec = get_padded_spec(arg_infos[3])
+        q_spec = get_padded_spec(arg_infos[0], mesh)
+        k_spec = get_padded_spec(arg_infos[1], mesh)
+        v_spec = get_padded_spec(arg_infos[2], mesh)
+        bias_spec = get_padded_spec(arg_infos[3], mesh)
         dq_sharding = NamedSharding(mesh, PartitionSpec(*q_spec))
         dk_sharding = NamedSharding(mesh, PartitionSpec(*k_spec))
         dv_sharding = NamedSharding(mesh, PartitionSpec(*v_spec))
@@ -936,10 +936,10 @@ class FusedAttnBwdPrimitive(BasePrimitive):
         result_infos,
     ):
         del result_infos
-        q_spec = get_padded_spec(arg_infos[0])
-        k_spec = get_padded_spec(arg_infos[1])
-        v_spec = get_padded_spec(arg_infos[2])
-        bias_spec = get_padded_spec(arg_infos[3])
+        q_spec = get_padded_spec(arg_infos[0], mesh)
+        k_spec = get_padded_spec(arg_infos[1], mesh)
+        v_spec = get_padded_spec(arg_infos[2], mesh)
+        bias_spec = get_padded_spec(arg_infos[3], mesh)
         dq_sharding = NamedSharding(mesh, PartitionSpec(*q_spec))
         dk_sharding = NamedSharding(mesh, PartitionSpec(*k_spec))
         dv_sharding = NamedSharding(mesh, PartitionSpec(*v_spec))

@@ -189,7 +189,7 @@ class SoftmaxPrimitive(BasePrimitive):
         softmax_forward infer_sharding_from_operands
         """
         del scale_factor, result_infos  # Unused.
-        logits_spec = get_padded_spec(arg_infos[0])
+        logits_spec = get_padded_spec(arg_infos[0], mesh)
         if logits_spec[-1] is not None:
             warnings.warn(
                 f"Sharding the hidden dimension is not supported in {cls.name}! "
@@ -205,7 +205,7 @@ class SoftmaxPrimitive(BasePrimitive):
         softmax_forward partitioning
         """
         del result_infos
-        logits_spec = get_padded_spec(arg_infos[0])
+        logits_spec = get_padded_spec(arg_infos[0], mesh)
         if logits_spec[-1] is not None:
             warnings.warn(
                 f"Sharding the hidden dimension is not supported in {cls.name}! "
@@ -301,7 +301,7 @@ class SoftmaxPrimitive(BasePrimitive):
         softmax_backward infer_sharding_from_operands
         """
         del scale_factor, result_infos  # Unused.
-        dz_spec = get_padded_spec(arg_infos[0])
+        dz_spec = get_padded_spec(arg_infos[0], mesh)
         if dz_spec[-1] is not None:
             warnings.warn(
                 f"Sharding the hidden dimension is not supported in {cls.name}! "
@@ -318,8 +318,8 @@ class SoftmaxPrimitive(BasePrimitive):
         """
         del result_infos
 
-        dz_spec = get_padded_spec(arg_infos[0])
-        softmax_out_spec = get_padded_spec(arg_infos[1])
+        dz_spec = get_padded_spec(arg_infos[0], mesh)
+        softmax_out_spec = get_padded_spec(arg_infos[1], mesh)
         if dz_spec[-1] is not None or softmax_out_spec[-1] is not None:
             warnings.warn(
                 f"Sharding the hidden dimension is not supported in {cls.name}! "

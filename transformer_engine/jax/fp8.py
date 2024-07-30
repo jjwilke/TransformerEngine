@@ -78,7 +78,7 @@ def _format2dtypes(format_: Format):
 # would sum gradients from all micro-batches, and this is not the expected
 # behavior for FP8 meta. Instead, the summation of FP8 meta gradients should
 # be "MAX".
-FlaxFloatMeta32 = fp8_ops.fm32
+# FlaxFloatMeta32 = fp8_ops.fm32
 
 
 class FP8MetaPackage:

@@ -918,7 +918,7 @@ void fused_attn_fp8_fwd_impl(int64_t b, int64_t h, int64_t s_q, int64_t s_kv, in
                             false};
 
     using CacheType = std::map<FADescriptor, cudnn_frontend::ExecutionPlan>;
-    static thread_local CacheType fa_fprop_cache;
+    thread_local CacheType fa_fprop_cache;
 
     // Get plan from cache if cache is available, otherwise create one
     auto get_plan = [&](CacheType& cache, const FADescriptor& descriptor) {
@@ -1199,7 +1199,7 @@ void fused_attn_fp8_bwd_impl(
                             false};
 
     using CacheType = std::map<FADescriptor, cudnn_frontend::ExecutionPlan>;
-    static thread_local CacheType fa_bprop_cache;
+    thread_local CacheType fa_bprop_cache;
 
     // Get plan from cache if cache is available, otherwise create one
     auto get_plan = [&](CacheType& cache, const FADescriptor& descriptor) {
@@ -1717,7 +1717,7 @@ void fused_attn_fp8_fwd_impl_v1(
                    std::shared_ptr<fe::graph::Tensor_attributes>>;  // dropout_offset
 
     using CacheType = std::map<FADescriptor_v1, graph_and_tensors>;
-    static thread_local CacheType sdpa_fp8_fprop_cache;
+    thread_local CacheType sdpa_fp8_fprop_cache;
 
     // Get plan from cache if cache is available, otherwise create one
     auto get_graph = [&](CacheType& cache, const FADescriptor_v1& descriptor) -> graph_and_tensors {
@@ -2027,7 +2027,7 @@ void fused_attn_fp8_bwd_impl_v1(
                    std::shared_ptr<fe::graph::Tensor_attributes>>;  // dropout_offset
 
     using CacheType = std::map<FADescriptor_v1, graph_and_tensors>;
-    static thread_local CacheType sdpa_fp8_bprop_cache;
+    thread_local CacheType sdpa_fp8_bprop_cache;
 
     // Get plan from cache if cache is available, otherwise create one
     auto get_graph = [&](CacheType& cache, const FADescriptor_v1& descriptor) -> graph_and_tensors {

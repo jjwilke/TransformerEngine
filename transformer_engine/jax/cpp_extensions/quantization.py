@@ -139,17 +139,17 @@ class CastFP8Primitive(BasePrimitive):
     @staticmethod
     def infer_sharding_from_operands(out_dtype, mesh, arg_infos, result_infos):
         del out_dtype, result_infos
-        x_spec = get_padded_spec(arg_infos[0])
+        x_spec = get_padded_spec(arg_infos[0], mesh)
         casted_x_sharding = NamedSharding(mesh, PartitionSpec(*x_spec))
-        amax_sharding = NamedSharding(mesh, PartitionSpec(*get_padded_spec(arg_infos[1])))
+        amax_sharding = NamedSharding(mesh, PartitionSpec(*get_padded_spec(arg_infos[1], mesh)))
         return (casted_x_sharding, amax_sharding)
 
     @staticmethod
     def partition(out_dtype, mesh, arg_infos, result_infos):
         del result_infos
-        x_spec = get_padded_spec(arg_infos[0])
+        x_spec = get_padded_spec(arg_infos[0], mesh)
         casted_x_sharding = NamedSharding(mesh, PartitionSpec(*x_spec))
-        amax_sharding = NamedSharding(mesh, PartitionSpec(*get_padded_spec(arg_infos[1])))
+        amax_sharding = NamedSharding(mesh, PartitionSpec(*get_padded_spec(arg_infos[1], mesh)))
         arg_shardings = tuple(arg_i.sharding for arg_i in arg_infos)
         out_shardings = (casted_x_sharding, amax_sharding)
 

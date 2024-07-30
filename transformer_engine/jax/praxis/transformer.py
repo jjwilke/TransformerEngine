@@ -151,6 +151,7 @@ class MultiHeadAttention(TransformerEngineBaseLayer):
     scale_attn_logits: bool = False
     scaled_query_init: bool = True
     float32_logits: bool = False
+    atten_logit_cap: float = 0.
 
     # Deprecated parameters
     num_heads: Optional[int] = None

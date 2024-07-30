@@ -156,7 +156,7 @@ class ActLuPrimitive(BasePrimitive):
         act_lu infer_sharding_from_operands
         """
         del result_infos, act_enum  # Unused.
-        x_spec = get_padded_spec(arg_infos[0])
+        x_spec = get_padded_spec(arg_infos[0], mesh)
         out_sharding = NamedSharding(mesh, PartitionSpec(*x_spec[:-2], x_spec[-1]))
         return out_sharding
 
@@ -166,7 +166,7 @@ class ActLuPrimitive(BasePrimitive):
         act_lu partitioning
         """
         del result_infos
-        x_spec = get_padded_spec(arg_infos[0])
+        x_spec = get_padded_spec(arg_infos[0], mesh)
         arg_shardings = tuple(arg_i.sharding for arg_i in arg_infos)
         out_sharding = NamedSharding(mesh, PartitionSpec(*x_spec[:-2], x_spec[-1]))
 
@@ -290,7 +290,7 @@ class DActLuPrimitive(BasePrimitive):
         dact_lu infer_sharding_from_operands
         """
         del result_infos, act_enum  # Unused.
-        act_lu_out_spec = get_padded_spec(arg_infos[1])
+        act_lu_out_spec = get_padded_spec(arg_infos[1], mesh)
         dx_sharding = NamedSharding(mesh, PartitionSpec(*act_lu_out_spec))
         return dx_sharding
 
@@ -300,7 +300,7 @@ class DActLuPrimitive(BasePrimitive):
         dact_lu partition
         """
         del result_infos
-        dx_sharding = NamedSharding(mesh, PartitionSpec(*get_padded_spec(arg_infos[1])))
+        dx_sharding = NamedSharding(mesh, PartitionSpec(*get_padded_spec(arg_infos[1], mesh)))
         arg_shardings = tuple(arg_i.sharding for arg_i in arg_infos)
         out_shardings = dx_sharding
 
@@ -440,17 +440,17 @@ class ActLuFp8Primitive(BasePrimitive):
     @staticmethod
     def infer_sharding_from_operands(out_dtype, act_enum, mesh, arg_infos, result_infos):
         del out_dtype, result_infos, act_enum
-        x_spec = get_padded_spec(arg_infos[0])
+        x_spec = get_padded_spec(arg_infos[0], mesh)
         out_sharding = NamedSharding(mesh, PartitionSpec(*x_spec[:-2], x_spec[-1]))
-        amax_sharding = NamedSharding(mesh, PartitionSpec(*get_padded_spec(arg_infos[1])))
+        amax_sharding = NamedSharding(mesh, PartitionSpec(*get_padded_spec(arg_infos[1], mesh)))
         return (out_sharding, amax_sharding)
 
     @staticmethod
     def partition(out_dtype, act_enum, mesh, arg_infos, result_infos):
         del result_infos
-        x_spec = get_padded_spec(arg_infos[0])
+        x_spec = get_padded_spec(arg_infos[0], mesh)
         out_sharding = NamedSharding(mesh, PartitionSpec(*x_spec[:-2], x_spec[-1]))
-        amax_sharding = NamedSharding(mesh, PartitionSpec(*get_padded_spec(arg_infos[1])))
+        amax_sharding = NamedSharding(mesh, PartitionSpec(*get_padded_spec(arg_infos[1], mesh)))
         arg_shardings = tuple(arg_i.sharding for arg_i in arg_infos)
         out_shardings = (out_sharding, amax_sharding)
 
