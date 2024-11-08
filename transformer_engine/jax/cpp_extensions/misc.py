@@ -18,7 +18,7 @@ from jax.interpreters.mlir import dtype_to_ir_type
 from transformer_engine.transformer_engine_jax import DType as TEDType
 from transformer_engine import transformer_engine_jax
 
-from ..sharding import get_padded_spec as te_get_padded_spec
+from ..sharding import te_get_padded_spec
 
 
 def te_dtype_to_jax_dtype(te_dtype):
@@ -81,14 +81,22 @@ def jax_dtype_to_te_dtype(jax_dtype):
     return converter.get(jax_dtype)
 
 
-def get_padded_spec(arg_info):
+def get_padded_spec(arg_info, mesh):
     """
     Get padded spec for partitioning from arguments' information
     """
     if arg_info.sharding is None:
         return te_get_padded_spec(None, arg_info.ndim)
-    ndim, spec = arg_info.ndim, arg_info.sharding.spec
-    return te_get_padded_spec(spec, ndim)
+
+    from jax._src.sharding_impls import PositionalSharding, parse_flatten_op_sharding
+    if isinstance(arg_info.sharding, PositionalSharding):
+        s = arg_info.sharding._to_xla_hlo_sharding(arg_info.ndim)
+        pspec = parse_flatten_op_sharding(s, mesh)[0]
+        spec = tuple(d for d in pspec)
+    else:
+        spec = arg_info.sharding.spec
+
+    return te_get_padded_spec(spec, arg_info.ndim)
 
 
 def check_valid_batch_dims(bdims):

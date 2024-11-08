@@ -140,12 +140,12 @@ cudnn_frontend::DataType_t get_cudnn_fe_dtype(const transformer_engine::DType t)
 class cudnnExecutionPlanManager {
  public:
   static cudnnExecutionPlanManager &Instance() {
-    static thread_local cudnnExecutionPlanManager instance;
+    static cudnnExecutionPlanManager instance;
     return instance;
   }
 
   cudnnHandle_t GetCudnnHandle() {
-    static thread_local std::once_flag flag;
+    static std::once_flag flag;
     std::call_once(flag, [&] { cudnnCreate(&handle_); });
     return handle_;
   }

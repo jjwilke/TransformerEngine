@@ -104,6 +104,7 @@ def register_primitive(cls):
     inner_p.def_impl(partial(xla.apply_primitive, inner_p))
     inner_p.def_abstract_eval(cls.abstract)
     mlir.register_lowering(inner_p, cls.lowering, platform="cuda")
+    mlir.register_lowering(inner_p, cls.lowering, platform="legate")
     cls.inner_primitive = inner_p
 
     outer_p = core.Primitive(name_of_wrapper_p())

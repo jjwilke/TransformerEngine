@@ -170,7 +170,7 @@ class TransposePrimitive(BasePrimitive):
         static_axis_boundary, transpose_axis_boundary, mesh, arg_infos, result_infos
     ):
         del result_infos
-        x_spec = get_padded_spec(arg_infos[0])
+        x_spec = get_padded_spec(arg_infos[0], mesh)
         xt_spec = multidim_transpose(x_spec, static_axis_boundary, transpose_axis_boundary)
         transposed_x_sharding = NamedSharding(mesh, PartitionSpec(*xt_spec))
         return transposed_x_sharding
@@ -178,7 +178,7 @@ class TransposePrimitive(BasePrimitive):
     @staticmethod
     def partition(static_axis_boundary, transpose_axis_boundary, mesh, arg_infos, result_infos):
         del result_infos
-        x_spec = get_padded_spec(arg_infos[0])
+        x_spec = get_padded_spec(arg_infos[0], mesh)
         xt_spec = multidim_transpose(x_spec, static_axis_boundary, transpose_axis_boundary)
         transposed_x_sharding = NamedSharding(mesh, PartitionSpec(*xt_spec))
         arg_shardings = tuple(arg_i.sharding for arg_i in arg_infos)
@@ -360,11 +360,11 @@ class CastTransposePrimitive(BasePrimitive):
         out_dtype, static_axis_boundary, transpose_axis_boundary, mesh, arg_infos, result_infos
     ):
         del out_dtype, result_infos
-        x_spec = get_padded_spec(arg_infos[0])
+        x_spec = get_padded_spec(arg_infos[0], mesh)
         casted_x_sharding = NamedSharding(mesh, PartitionSpec(*x_spec))
         xt_spec = multidim_transpose(x_spec, static_axis_boundary, transpose_axis_boundary)
         casted_transposed_x_sharding = NamedSharding(mesh, PartitionSpec(*xt_spec))
-        amax_sharding = NamedSharding(mesh, PartitionSpec(*get_padded_spec(arg_infos[1])))
+        amax_sharding = NamedSharding(mesh, PartitionSpec(*get_padded_spec(arg_infos[1], mesh)))
         return (casted_x_sharding, casted_transposed_x_sharding, amax_sharding)
 
     @staticmethod
@@ -372,11 +372,11 @@ class CastTransposePrimitive(BasePrimitive):
         out_dtype, static_axis_boundary, transpose_axis_boundary, mesh, arg_infos, result_infos
     ):
         del result_infos
-        x_spec = get_padded_spec(arg_infos[0])
+        x_spec = get_padded_spec(arg_infos[0], mesh)
         casted_x_sharding = NamedSharding(mesh, PartitionSpec(*x_spec))
         xt_spec = multidim_transpose(x_spec, static_axis_boundary, transpose_axis_boundary)
         casted_transposed_x_sharding = NamedSharding(mesh, PartitionSpec(*xt_spec))
-        amax_sharding = NamedSharding(mesh, PartitionSpec(*get_padded_spec(arg_infos[1])))
+        amax_sharding = NamedSharding(mesh, PartitionSpec(*get_padded_spec(arg_infos[1], mesh)))
         arg_shardings = tuple(arg_i.sharding for arg_i in arg_infos)
         out_shardings = (casted_x_sharding, casted_transposed_x_sharding, amax_sharding)
 
@@ -603,14 +603,14 @@ class DBiasCastTransposePrimitive(BasePrimitive):
         out_dtype, static_axis_boundary, transpose_axis_boundary, mesh, arg_infos, result_infos
     ):
         del out_dtype, result_infos
-        x_spec = get_padded_spec(arg_infos[0])
+        x_spec = get_padded_spec(arg_infos[0], mesh)
         out_sharding = NamedSharding(mesh, PartitionSpec(*x_spec))
         xt_spec = multidim_transpose(x_spec, static_axis_boundary, transpose_axis_boundary)
         tranposed_out_sharding = NamedSharding(mesh, PartitionSpec(*xt_spec))
         dbias_shaprding = NamedSharding(
             mesh, PartitionSpec(*x_spec[: static_axis_boundary + 1], x_spec[-1])
         )
-        amax_sharding = NamedSharding(mesh, PartitionSpec(*get_padded_spec(arg_infos[1])))
+        amax_sharding = NamedSharding(mesh, PartitionSpec(*get_padded_spec(arg_infos[1], mesh)))
         return (out_sharding, tranposed_out_sharding, dbias_shaprding, amax_sharding)
 
     @staticmethod
@@ -618,7 +618,7 @@ class DBiasCastTransposePrimitive(BasePrimitive):
         out_dtype, static_axis_boundary, transpose_axis_boundary, mesh, arg_infos, result_infos
     ):
         del result_infos
-        x_spec = get_padded_spec(arg_infos[0])
+        x_spec = get_padded_spec(arg_infos[0], mesh)
         casted_x_sharding = NamedSharding(mesh, PartitionSpec(*x_spec))
         xt_spec = multidim_transpose(x_spec, static_axis_boundary, transpose_axis_boundary)
         casted_transposed_x_sharding = NamedSharding(mesh, PartitionSpec(*xt_spec))
@@ -627,7 +627,7 @@ class DBiasCastTransposePrimitive(BasePrimitive):
             mesh, PartitionSpec(*x_spec[: static_axis_boundary + 1], x_spec[-1])
         )
 
-        amax_sharding = NamedSharding(mesh, PartitionSpec(*get_padded_spec(arg_infos[1])))
+        amax_sharding = NamedSharding(mesh, PartitionSpec(*get_padded_spec(arg_infos[1], mesh)))
         arg_shardings = tuple(arg_i.sharding for arg_i in arg_infos)
         out_shardings = (
             casted_x_sharding,
@@ -928,14 +928,14 @@ class DActLuDBiasCastTransposePrimitive(BasePrimitive):
         result_infos,
     ):
         del out_dtype, result_infos, act_enum
-        x_spec = get_padded_spec(arg_infos[1])
+        x_spec = get_padded_spec(arg_infos[1], mesh)
         out_sharding = NamedSharding(mesh, PartitionSpec(*x_spec))
         xt_spec = multidim_transpose(x_spec, static_axis_boundary, transpose_axis_boundary)
         tranposed_out_sharding = NamedSharding(mesh, PartitionSpec(*xt_spec))
         dbias_shaprding = NamedSharding(
             mesh, PartitionSpec(*x_spec[: static_axis_boundary + 1], x_spec[-1])
         )
-        amax_sharding = NamedSharding(mesh, PartitionSpec(*get_padded_spec(arg_infos[2])))
+        amax_sharding = NamedSharding(mesh, PartitionSpec(*get_padded_spec(arg_infos[2], mesh)))
         return (out_sharding, tranposed_out_sharding, dbias_shaprding, amax_sharding)
 
     @staticmethod
@@ -949,7 +949,7 @@ class DActLuDBiasCastTransposePrimitive(BasePrimitive):
         result_infos,
     ):
         del result_infos
-        x_spec = get_padded_spec(arg_infos[1])
+        x_spec = get_padded_spec(arg_infos[1], mesh)
         casted_x_sharding = NamedSharding(mesh, PartitionSpec(*x_spec))
         xt_spec = multidim_transpose(x_spec, static_axis_boundary, transpose_axis_boundary)
         casted_transposed_x_sharding = NamedSharding(mesh, PartitionSpec(*xt_spec))
@@ -958,7 +958,7 @@ class DActLuDBiasCastTransposePrimitive(BasePrimitive):
             mesh, PartitionSpec(*x_spec[: static_axis_boundary + 1], x_spec[-1])
         )
 
-        amax_sharding = NamedSharding(mesh, PartitionSpec(*get_padded_spec(arg_infos[2])))
+        amax_sharding = NamedSharding(mesh, PartitionSpec(*get_padded_spec(arg_infos[2], mesh)))
         arg_shardings = tuple(arg_i.sharding for arg_i in arg_infos)
         out_shardings = (
             casted_x_sharding,
@@ -1195,22 +1195,22 @@ class DgatedActLuCastTransposePrimitive(BasePrimitive):
         out_dtype, static_axis_boundary, act_enum, mesh, arg_infos, result_infos
     ):
         del out_dtype, result_infos, act_enum
-        x_spec = get_padded_spec(arg_infos[1])
+        x_spec = get_padded_spec(arg_infos[1], mesh)
         out_sharding = NamedSharding(mesh, PartitionSpec(*x_spec))
         xt_spec = multidim_transpose(x_spec, static_axis_boundary, -2)
         tranposed_out_sharding = NamedSharding(mesh, PartitionSpec(*xt_spec))
-        amax_sharding = NamedSharding(mesh, PartitionSpec(*get_padded_spec(arg_infos[2])))
+        amax_sharding = NamedSharding(mesh, PartitionSpec(*get_padded_spec(arg_infos[2], mesh)))
         return (out_sharding, tranposed_out_sharding, amax_sharding)
 
     @staticmethod
     def partition(out_dtype, static_axis_boundary, act_enum, mesh, arg_infos, result_infos):
         del result_infos
-        x_spec = get_padded_spec(arg_infos[1])
+        x_spec = get_padded_spec(arg_infos[1], mesh)
         casted_x_sharding = NamedSharding(mesh, PartitionSpec(*x_spec))
         xt_spec = multidim_transpose(x_spec, static_axis_boundary, -2)
         casted_transposed_x_sharding = NamedSharding(mesh, PartitionSpec(*xt_spec))
 
-        amax_sharding = NamedSharding(mesh, PartitionSpec(*get_padded_spec(arg_infos[2])))
+        amax_sharding = NamedSharding(mesh, PartitionSpec(*get_padded_spec(arg_infos[2], mesh)))
         arg_shardings = tuple(arg_i.sharding for arg_i in arg_infos)
         out_shardings = (casted_x_sharding, casted_transposed_x_sharding, amax_sharding)
 

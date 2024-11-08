@@ -123,7 +123,7 @@ def get_all_mesh_axes():
     return mesh.axis_names
 
 
-def get_padded_spec(spec, ndim):
+def te_get_padded_spec(spec, ndim):
     """
     Get padded spec for partitioning from arguments' information
     """
@@ -142,6 +142,7 @@ def lax_paral_op(
     if mesh_resource is not None:
         _, resource = _get_mesh_info(mesh_resource, mesh)
         return ops(x, resource, **kwargs)
+
     return x
 
 

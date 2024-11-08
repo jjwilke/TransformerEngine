@@ -142,7 +142,7 @@ inline NVTE_Fused_Attn_Backend get_fused_attn_backend(
 class cudaDevicePropertiesManager {
  public:
   static cudaDevicePropertiesManager &Instance() {
-    static thread_local cudaDevicePropertiesManager instance;
+    static cudaDevicePropertiesManager instance;
     return instance;
   }
 

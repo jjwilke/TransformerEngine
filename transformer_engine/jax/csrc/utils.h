@@ -34,7 +34,7 @@ uint32_t GetRuntimeNumSegments(void *cu_seqlen, void *workspace, size_t len, cud
 class cudaDevicePropertiesManager {
  public:
   static cudaDevicePropertiesManager &Instance() {
-    static thread_local cudaDevicePropertiesManager instance;
+    static cudaDevicePropertiesManager instance;
     return instance;
   }
 
@@ -66,7 +66,7 @@ class cudaDevicePropertiesManager {
 class FusedAttnOffsetManager {
  public:
   static FusedAttnOffsetManager &Instance() {
-    static thread_local FusedAttnOffsetManager instance;
+    static FusedAttnOffsetManager instance;
     return instance;
   }
 

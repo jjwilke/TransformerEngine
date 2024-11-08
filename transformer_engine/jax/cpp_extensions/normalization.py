@@ -205,7 +205,7 @@ class LayerNormFwdPrimitive(BasePrimitive):
     @staticmethod
     def infer_sharding_from_operands(zero_centered_gamma, epsilon, mesh, arg_infos, result_infos):
         del zero_centered_gamma, epsilon, result_infos
-        x_spec = get_padded_spec(arg_infos[0])
+        x_spec = get_padded_spec(arg_infos[0], mesh)
         if x_spec[-1] is not None:
             warnings.warn(
                 f"Does not support to shard hidden dim in {LayerNormFwdPrimitive.name}! "
@@ -219,7 +219,7 @@ class LayerNormFwdPrimitive(BasePrimitive):
     @staticmethod
     def partition(zero_centered_gamma, epsilon, mesh, arg_infos, result_infos):
         del result_infos
-        x_spec, g_spec, b_spec = map(get_padded_spec, arg_infos)
+        x_spec, g_spec, b_spec = map(partial(get_padded_spec, mesh=mesh), arg_infos)
         if x_spec[-1] is not None:
             warnings.warn(
                 f"Does not support to shard hidden dim in {LayerNormFwdPrimitive.name}! "
@@ -485,14 +485,14 @@ class LayerNormBwdPrimitive(BasePrimitive):
     @staticmethod
     def infer_sharding_from_operands(zero_centered_gamma, epsilon, mesh, arg_infos, result_infos):
         del zero_centered_gamma, epsilon, result_infos
-        x_spec = get_padded_spec(arg_infos[1])
+        x_spec = get_padded_spec(arg_infos[1], mesh)
         if x_spec[-1] is not None:
             warnings.warn(
                 f"Does not support to shard hidden dim in {LayerNormBwdPrimitive.name}! "
                 "Force to not shard the hidden dim, which might introduce extra collective ops, "
                 "and hurt performance."
             )
-        g_b_spec = get_padded_spec(arg_infos[4])
+        g_b_spec = get_padded_spec(arg_infos[4], mesh)
         if g_b_spec[-1] is not None:
             warnings.warn(
                 f"{LayerNormBwdPrimitive.name} does not support sharding of gradients "
@@ -507,14 +507,14 @@ class LayerNormBwdPrimitive(BasePrimitive):
     @staticmethod
     def partition(zero_centered_gamma, epsilon, mesh, arg_infos, result_infos):
         del result_infos
-        x_spec = get_padded_spec(arg_infos[1])
+        x_spec = get_padded_spec(arg_infos[1], mesh)
         if x_spec[-1] is not None:
             warnings.warn(
                 f"Does not support to shard hidden dim in {LayerNormBwdPrimitive.name}! "
                 "Force to not shard the hidden dim, which might introduce extra collective ops, "
                 "and hurt performance."
             )
-        g_b_spec = get_padded_spec(arg_infos[4])
+        g_b_spec = get_padded_spec(arg_infos[4], mesh)
         if g_b_spec[-1] is not None:
             warnings.warn(
                 f"{LayerNormBwdPrimitive.name} does not support sharding of gradients "
@@ -533,8 +533,11 @@ class LayerNormBwdPrimitive(BasePrimitive):
             local_dx, local_dgamma, local_dbeta = LayerNormBwdPrimitive.impl(
                 dz, x, mu, rsigma, gamma, zero_centered_gamma=zero_centered_gamma, epsilon=epsilon
             )
-            global_dgamma = all_reduce_sum_along_dp_fsdp(local_dgamma, mesh)
-            global_dbeta = all_reduce_sum_along_dp_fsdp(local_dbeta, mesh)
+
+            #global_dgamma = all_reduce_sum_along_dp_fsdp(local_dgamma, mesh)
+            global_dgamma = local_dgamma
+            #global_dbeta = all_reduce_sum_along_dp_fsdp(local_dbeta, mesh)
+            global_dbeta = local_dbeta
             return local_dx, global_dgamma, global_dbeta
 
         return mesh, sharded_impl, out_shardings, arg_shardings
@@ -702,7 +705,7 @@ class RmsNormFwdPrimitive(BasePrimitive):
     @staticmethod
     def infer_sharding_from_operands(epsilon, mesh, arg_infos, result_infos):
         del epsilon, result_infos
-        x_spec = get_padded_spec(arg_infos[0])
+        x_spec = get_padded_spec(arg_infos[0], mesh)
         if x_spec[-1] is not None:
             warnings.warn(
                 f"Does not support to shard hidden dim in {RmsNormFwdPrimitive.name}! "
@@ -893,14 +896,14 @@ class RmsNormBwdPrimitive(BasePrimitive):
     @staticmethod
     def infer_sharding_from_operands(epsilon, mesh, arg_infos, result_infos):
         del epsilon, result_infos
-        x_spec = get_padded_spec(arg_infos[1])
+        x_spec = get_padded_spec(arg_infos[1], mesh)
         if x_spec[-1] is not None:
             warnings.warn(
                 f"Does not support to shard hidden dim in {RmsNormBwdPrimitive.name}! "
                 "Force to not shard the hidden dim, which might introduce extra collective ops, "
                 "and hurt performance."
             )
-        g_spec = get_padded_spec(arg_infos[3])
+        g_spec = get_padded_spec(arg_infos[3], mesh)
         if g_spec[-1] is not None:
             warnings.warn(
                 f"{RmsNormBwdPrimitive.name} does not support sharding of parameter gamma "
@@ -913,14 +916,14 @@ class RmsNormBwdPrimitive(BasePrimitive):
     @staticmethod
     def partition(epsilon, mesh, arg_infos, result_infos):
         del result_infos
-        x_spec = get_padded_spec(arg_infos[1])
+        x_spec = get_padded_spec(arg_infos[1], mesh)
         if x_spec[-1] is not None:
             warnings.warn(
                 f"Does not support to shard hidden dim in {RmsNormBwdPrimitive.name}! "
                 "Force to not shard the hidden dim, which might introduce extra collective ops, "
                 "and hurt performance."
             )
-        g_spec = get_padded_spec(arg_infos[3])
+        g_spec = get_padded_spec(arg_infos[3], mesh)
         if g_spec[-1] is not None:
             warnings.warn(
                 f"{RmsNormBwdPrimitive.name} does not support sharding of parameter gamma "
@@ -1169,7 +1172,7 @@ class LayerNormFwdFp8Primitive(BasePrimitive):
         out_dtype, zero_centered_gamma, epsilon, mesh, arg_infos, result_infos
     ):
         del out_dtype, zero_centered_gamma, epsilon, result_infos
-        x_spec = get_padded_spec(arg_infos[0])
+        x_spec = get_padded_spec(arg_infos[0], mesh)
         if x_spec[-1] is not None:
             warnings.warn(
                 f"Does not support to shard hidden dim in {LayerNormFwdPrimitive.name}! "
@@ -1179,15 +1182,15 @@ class LayerNormFwdFp8Primitive(BasePrimitive):
 
         out_sharding = NamedSharding(mesh, PartitionSpec(*x_spec[:-1], None))
         mu_sharding = rsigma_sharding = NamedSharding(mesh, PartitionSpec(*x_spec[:-1]))
-        amax_sharding = NamedSharding(mesh, PartitionSpec(*get_padded_spec(arg_infos[3])))
+        amax_sharding = NamedSharding(mesh, PartitionSpec(*get_padded_spec(arg_infos[3], mesh)))
         return (out_sharding, mu_sharding, rsigma_sharding, amax_sharding)
 
     @staticmethod
     def partition(out_dtype, zero_centered_gamma, epsilon, mesh, arg_infos, result_infos):
         del result_infos
-        x_spec = get_padded_spec(arg_infos[0])
-        g_spec = get_padded_spec(arg_infos[1])
-        b_spec = get_padded_spec(arg_infos[2])
+        x_spec = get_padded_spec(arg_infos[0], mesh)
+        g_spec = get_padded_spec(arg_infos[1], mesh)
+        b_spec = get_padded_spec(arg_infos[2], mesh)
         if x_spec[-1] is not None:
             warnings.warn(
                 f"Does not support to shard hidden dim in {LayerNormFwdFp8Primitive.name}! "
@@ -1209,9 +1212,9 @@ class LayerNormFwdFp8Primitive(BasePrimitive):
         b_sharding = NamedSharding(mesh, PartitionSpec(None))
         out_sharding = x_sharding
         mu_sharding = rsigma_sharding = NamedSharding(
-            mesh, PartitionSpec(*get_padded_spec(arg_infos[0])[:-1])
+            mesh, PartitionSpec(*get_padded_spec(arg_infos[0], mesh)[:-1])
         )
-        amax_sharding = NamedSharding(mesh, PartitionSpec(*get_padded_spec(arg_infos[3])))
+        amax_sharding = NamedSharding(mesh, PartitionSpec(*get_padded_spec(arg_infos[3], mesh)))
         fp8_meta_sharding = amax_sharding
         arg_shardings = (x_sharding, g_sharding, b_sharding) + (fp8_meta_sharding,) * 3
         out_shardings = (out_sharding, mu_sharding, rsigma_sharding, amax_sharding)
@@ -1440,7 +1443,7 @@ class RmsNormFwdFp8Primitive(BasePrimitive):
     @staticmethod
     def infer_sharding_from_operands(out_dtype, epsilon, mesh, arg_infos, result_infos):
         del out_dtype, epsilon, result_infos
-        x_spec = get_padded_spec(arg_infos[0])
+        x_spec = get_padded_spec(arg_infos[0], mesh)
         if x_spec[-1] is not None:
             warnings.warn(
                 f"Does not support to shard hidden dim in {RmsNormFwdFp8Primitive.name}! "
@@ -1449,14 +1452,14 @@ class RmsNormFwdFp8Primitive(BasePrimitive):
             )
         out_sharding = NamedSharding(mesh, PartitionSpec(*x_spec[:-1], None))
         rsigma_sharding = NamedSharding(mesh, PartitionSpec(*x_spec[:-1]))
-        amax_sharding = NamedSharding(mesh, PartitionSpec(*get_padded_spec(arg_infos[2])))
+        amax_sharding = NamedSharding(mesh, PartitionSpec(*get_padded_spec(arg_infos[2], mesh)))
         return (out_sharding, rsigma_sharding, amax_sharding)
 
     @staticmethod
     def partition(out_dtype, epsilon, mesh, arg_infos, result_infos):
         del result_infos
-        x_spec = get_padded_spec(arg_infos[0])
-        g_spec = get_padded_spec(arg_infos[1])
+        x_spec = get_padded_spec(arg_infos[0], mesh)
+        g_spec = get_padded_spec(arg_infos[1], mesh)
         if x_spec[-1] is not None:
             warnings.warn(
                 f"Does not support to shard hidden dim in {RmsNormFwdFp8Primitive.name}! "
@@ -1471,8 +1474,8 @@ class RmsNormFwdFp8Primitive(BasePrimitive):
         x_sharding = NamedSharding(mesh, PartitionSpec(*x_spec[:-1], None))
         g_sharding = NamedSharding(mesh, PartitionSpec(None))
         out_sharding = x_sharding
-        rsigma_sharding = NamedSharding(mesh, PartitionSpec(*get_padded_spec(arg_infos[0])[:-1]))
-        amax_sharding = NamedSharding(mesh, PartitionSpec(*get_padded_spec(arg_infos[2])))
+        rsigma_sharding = NamedSharding(mesh, PartitionSpec(*get_padded_spec(arg_infos[0], mesh)[:-1]))
+        amax_sharding = NamedSharding(mesh, PartitionSpec(*get_padded_spec(arg_infos[2], mesh)))
         fp8_meta_sharding = amax_sharding
         arg_shardings = (x_sharding, g_sharding) + (fp8_meta_sharding,) * 3
         out_shardings = (out_sharding, rsigma_sharding, amax_sharding)

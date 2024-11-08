@@ -500,7 +500,7 @@ class FusedAttnFwdPrimitive(BasePrimitive):
     @staticmethod
     def infer_sharding_from_operands(config, mesh, arg_infos, result_infos):
         del result_infos
-        q_spec = get_padded_spec(arg_infos[0])
+        q_spec = get_padded_spec(arg_infos[0], mesh)
         match config.qkv_layout:
             case NVTE_QKV_Layout.NVTE_BS3HD | NVTE_QKV_Layout.NVTE_T3HD:
                 # q_spec = (...batch, q_seqlen, head, hidden)
@@ -833,10 +833,10 @@ class FusedAttnBwdPrimitive(BasePrimitive):
     @staticmethod
     def infer_sharding_from_operands(config, mesh, arg_infos, result_infos):
         del config, result_infos
-        q_spec = get_padded_spec(arg_infos[0])
-        k_spec = get_padded_spec(arg_infos[1])
-        v_spec = get_padded_spec(arg_infos[2])
-        bias_spec = get_padded_spec(arg_infos[3])
+        q_spec = get_padded_spec(arg_infos[0], mesh)
+        k_spec = get_padded_spec(arg_infos[1], mesh)
+        v_spec = get_padded_spec(arg_infos[2], mesh)
+        bias_spec = get_padded_spec(arg_infos[3], mesh)
         dq_sharding = NamedSharding(mesh, PartitionSpec(*q_spec))
         dk_sharding = NamedSharding(mesh, PartitionSpec(*k_spec))
         dv_sharding = NamedSharding(mesh, PartitionSpec(*v_spec))
@@ -846,10 +846,10 @@ class FusedAttnBwdPrimitive(BasePrimitive):
     @staticmethod
     def partition(config, mesh, arg_infos, result_infos):
         del result_infos
-        q_spec = get_padded_spec(arg_infos[0])
-        k_spec = get_padded_spec(arg_infos[1])
-        v_spec = get_padded_spec(arg_infos[2])
-        bias_spec = get_padded_spec(arg_infos[3])
+        q_spec = get_padded_spec(arg_infos[0], mesh)
+        k_spec = get_padded_spec(arg_infos[1], mesh)
+        v_spec = get_padded_spec(arg_infos[2], mesh)
+        bias_spec = get_padded_spec(arg_infos[3], mesh)
         dq_sharding = NamedSharding(mesh, PartitionSpec(*q_spec))
         dk_sharding = NamedSharding(mesh, PartitionSpec(*k_spec))
         dv_sharding = NamedSharding(mesh, PartitionSpec(*v_spec))
@@ -1144,10 +1144,10 @@ class FusedAttnCPWithAllGatherBwdPrimitive(FusedAttnBwdPrimitive):
         helper.check_supported()
 
         del result_infos
-        q_spec = get_padded_spec(arg_infos[0])
-        k_spec = get_padded_spec(arg_infos[1])
-        v_spec = get_padded_spec(arg_infos[2])
-        bias_spec = get_padded_spec(arg_infos[3])
+        q_spec = get_padded_spec(arg_infos[0], mesh)
+        k_spec = get_padded_spec(arg_infos[1], mesh)
+        v_spec = get_padded_spec(arg_infos[2], mesh)
+        bias_spec = get_padded_spec(arg_infos[3], mesh)
         dq_sharding = NamedSharding(mesh, PartitionSpec(*q_spec))
         dk_sharding = NamedSharding(mesh, PartitionSpec(*k_spec))
         dv_sharding = NamedSharding(mesh, PartitionSpec(*v_spec))
